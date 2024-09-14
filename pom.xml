@@ -1,0 +1,89 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+    <groupId>cn.csc.iot</groupId>
+    <artifactId>encrypt-helloworld</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.4.3</version>
+    </parent>
+
+    <name>encrypt-helloworld</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- springboot web 启动器 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+      <!--根据profile不同,替换文件中的变量的值 -->
+      <resources>
+        <resource>
+          <!--   指定配置文件的位置  -->
+          <directory>src/main/resources</directory>
+          <includes>
+            <!--   读取resources下的所有文件，include表示指定文件内的，相对的还有excludes ，排除其下的文件 -->
+            <include>**/*</include>
+          </includes>
+          <!-- 开启替换标签，比如我们的'@env'就是通过这个替换的         -->
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!--
+                  1.加密后,方法体被清空,保留方法参数、注解等信息.主要兼容swagger文档注解扫描
+                  2.方法体被清空后,反编译只能看到方法名和注解,看不到方法体的具体内容
+                  3.加密后的项目需要设置javaagent来启动,启动过程中解密class,完全内存解密,不留下任何解密后的文件
+                  4.启动加密后的jar,生成xxx-encrypted.jar,这个就是加密后的jar文件,加密后不可直接执行
+                  5.无密码启动方式,java-javaagent:xxx-encrypted.jar-jarxxx-encrypted.jar
+                  6.有密码启动方式,java-javaagent:xxx-encrypted.jar='-pwd=密码'-jarxxx-encrypted.jar
+              -->
+            <plugin>
+                <groupId>net.roseboy</groupId>
+                <artifactId>classfinal-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <password>123456</password><!--#表示启动时不需要密码,事实上对于代码混淆来说,这个密码没什么用,它只是一个启动密码-->
+                    <excludes>org.spring</excludes>
+                    <packages>cn.csc.iot</packages><!--加密的包名,多个包用逗号分开-->
+                    <cfgfiles>application.yml,application-dev.yml</cfgfiles><!--加密的配置文件,多个包用逗号分开-->
+                    <libjars>hutool-all.jar</libjars><!--jar包lib下面要加密的jar依赖文件,多个包用逗号分开-->
+                    <code>5DDD157B786E8DC0D911889B95F997A7D41D8CD98F00B204E9800998ECF8427ED41D8CD98F00B204E9800998ECF8427E</code><!--指定机器启动,机器码-->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>classFinal</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
